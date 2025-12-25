@@ -1,0 +1,112 @@
+
+class Lexer:
+    """Lexical analyzer to convert template text to tokens"""
+    
+    def __init__(self, source: str):
+        self.source = source
+        self.position = 0
+        self.line = 1
+        self.column = 1
+        self.tokens: List[Token] = []
+        
+        self.keywords = {
+            'if': TokenType.IF,
+            'else': TokenType.ELSE,
+            'elif': TokenType.ELIF,
+            'endif': TokenType.ENDIF,
+            'for': TokenType.FOR,
+            'in': TokenType.IN,
+            'endfor': TokenType.ENDFOR,
+            'set': TokenType.SET,
+        }
+    
+    def tokenize(self) -> List[Token]:
+        """Convert text to list of tokens"""
+        while self.position < len(self.source):
+            # Skip whitespace
+            if self.source[self.position].isspace():
+                if self.source[self.position] == '\n':
+                    self.line += 1
+                    self.column = 1
+                else:
+                    self.column += 1
+                self.position += 1
+                continue
+            
+            # First check for special two-character symbols
+            if self.position + 1 < len(self.source):
+                two_char = self.source[self.position:self.position+2]
+                if two_char == '{{':
+                    token = Token(TokenType.EXPR_OPEN, two_char, self.line, self.column)
+                    self.tokens.append(token)
+                    self.position += 2
+                    self.column += 2
+                    continue
+                elif two_char == '}}':
+                    token = Token(TokenType.EXPR_CLOSE, two_char, self.line, self.column)
+                    self.tokens.append(token)
+                    self.position += 2
+                    self.column += 2
+                    continue
+                elif two_char == '{%':
+                    token = Token(TokenType.STMT_OPEN, two_char, self.line, self.column)
+                    self.tokens.append(token)
+                    self.position += 2
+                    self.column += 2
+                    continue
+                elif two_char == '%}':
+                    token = Token(TokenType.STMT_CLOSE, two_char, self.line, self.column)
+                    self.tokens.append(token)
+                    self.position += 2
+                    self.column += 2
+                    continue
+                elif two_char == '/>':
+                    token = Token(TokenType.TAG_SELF_CLOSE, two_char, self.line, self.column)
+                    self.tokens.append(token)
+                    self.position += 2
+                    self.column += 2
+                    continue
+            
+            if char.isdigit():
+                number = ''
+                while self.position < len(self.source) and (self.source[self.position].isdigit() or 
+                                                           (self.source[self.position] == '.' and 
+                                                            self.position + 1 < len(self.source) and 
+                                                            self.source[self.position + 1].isdigit())):
+                    number += self.source[self.position]
+                    self.position += 1
+                
+                token = Token(TokenType.NUMBER, number, self.line, self.column)
+                self.tokens.append(token)
+                self.column += len(number)
+                continue
+            
+            # Handle identifiers and keywords
+            if char.isalpha() or char == '_':
+                identifier = ''
+                while self.position < len(self.source) and (self.source[self.position].isalnum() or 
+                                                           self.source[self.position] == '_'):
+                    identifier += self.source[self.position]
+                    self.position += 1
+                
+                # Check if it's a keyword
+                token_type = TokenType.IDENTIFIER
+                if identifier in self.keywords:
+                    token_type = self.keywords[identifier]
+                elif identifier in ['True', 'False']:
+                    token_type = TokenType.BOOL
+                
+                token = Token(token_type, identifier, self.line, self.column)
+                self.tokens.append(token)
+                self.column += len(identifier)
+                continue
+            
+            single_char_operators = ['+', '-', '*', '/', '<', '>']
+            if char in single_char_operators:
+                token = Token(TokenType.OPERATOR, char, self.line, self.column)
+                self.tokens.append(token)
+                self.position += 1
+                self.column += 1
+                continue
+            
+
