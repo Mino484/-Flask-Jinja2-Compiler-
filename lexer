@@ -67,6 +67,63 @@ class Lexer:
                     self.column += 2
                     continue
             
+            # Check for single character symbols
+            char = self.source[self.position]
+            if char == '<':
+                token = Token(TokenType.TAG_OPEN, char, self.line, self.column)
+                self.tokens.append(token)
+                self.position += 1
+                self.column += 1
+                continue
+            elif char == '>':
+                token = Token(TokenType.TAG_CLOSE, char, self.line, self.column)
+                self.tokens.append(token)
+                self.position += 1
+                self.column += 1
+                continue
+            elif char == '|':
+                token = Token(TokenType.PIPE, char, self.line, self.column)
+                self.tokens.append(token)
+                self.position += 1
+                self.column += 1
+                continue
+            elif char == '(':
+                token = Token(TokenType.L_PAREN, char, self.line, self.column)
+                self.tokens.append(token)
+                self.position += 1
+                self.column += 1
+                continue
+            elif char == ')':
+                token = Token(TokenType.R_PAREN, char, self.line, self.column)
+                self.tokens.append(token)
+                self.position += 1
+                self.column += 1
+                continue
+            elif char == '=':
+                token = Token(TokenType.ASSIGN, char, self.line, self.column)
+                self.tokens.append(token)
+                self.position += 1
+                self.column += 1
+                continue
+            elif char == '.':
+                token = Token(TokenType.DOT, char, self.line, self.column)
+                self.tokens.append(token)
+                self.position += 1
+                self.column += 1
+                continue
+            elif char == ',':
+                token = Token(TokenType.COMMA, char, self.line, self.column)
+                self.tokens.append(token)
+                self.position += 1
+                self.column += 1
+                continue
+            elif char == ':':
+                token = Token(TokenType.COLON, char, self.line, self.column)
+                self.tokens.append(token)
+                self.position += 1
+                self.column += 1
+                continue
+            
             if char.isdigit():
                 number = ''
                 while self.position < len(self.source) and (self.source[self.position].isdigit() or 
@@ -101,6 +158,50 @@ class Lexer:
                 self.column += len(identifier)
                 continue
             
+            # Handle strings between quotes
+            if char in ['"', "'"]:
+                quote_char = char
+                string_literal = quote_char
+                self.position += 1
+                self.column += 1
+                
+                while (self.position < len(self.source) and 
+                       self.source[self.position] != quote_char):
+                    # Handle escape characters
+                    if self.source[self.position] == '\\' and self.position + 1 < len(self.source):
+                        string_literal += self.source[self.position]
+                        self.position += 1
+                        self.column += 1
+                    
+                    string_literal += self.source[self.position]
+                    self.position += 1
+                    self.column += 1
+                
+                if self.position < len(self.source):
+                    string_literal += self.source[self.position]  # Closing quote
+                    self.position += 1
+                    self.column += 1
+                
+                token = Token(TokenType.STRING, string_literal, self.line, self.column)
+                self.tokens.append(token)
+                continue
+            
+            # Handle multi-character operators
+            multi_char_operators = ['==', '!=', '<=', '>=', 'and', 'or', 'not']
+            matched_operator = False
+            for op in multi_char_operators:
+                if self.source.startswith(op, self.position):
+                    token = Token(TokenType.OPERATOR, op, self.line, self.column)
+                    self.tokens.append(token)
+                    self.position += len(op)
+                    self.column += len(op)
+                    matched_operator = True
+                    break
+            
+            if matched_operator:
+                continue
+            
+            # Handle single-character operators
             single_char_operators = ['+', '-', '*', '/', '<', '>']
             if char in single_char_operators:
                 token = Token(TokenType.OPERATOR, char, self.line, self.column)
@@ -109,4 +210,31 @@ class Lexer:
                 self.column += 1
                 continue
             
+            # Everything else is  text
+            text = ''
+            while (self.position < len(self.source) and 
+                   not self.source[self.position].isspace() and
+                   self.position + 1 < len(self.source) and
+                   not self.source.startswith('{{', self.position) and
+                   not self.source.startswith('{%', self.position) and
+                   not self.source.startswith('}}', self.position) and
+                   not self.source.startswith('%}', self.position) and
+                   self.source[self.position] not in ['<', '>', '|', '(', ')', '=', '.', ',', ':', '+', '-', '*', '/']):
+                text += self.source[self.position]
+                self.position += 1
+            
+            if text:
+                token = Token(TokenType.TEXT, text, self.line, self.column)
+                self.tokens.append(token)
+                self.column += len(text)
+            else:
+                # Unknown character - take only one character
+                char = self.source[self.position]
+                token = Token(TokenType.TEXT, char, self.line, self.column)
+                self.tokens.append(token)
+                self.position += 1
+                self.column += 1
+        
+        self.tokens.append(Token(TokenType.EOF, "", self.line, self.column))
+        return self.tokens
 
