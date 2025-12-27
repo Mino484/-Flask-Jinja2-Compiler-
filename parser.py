@@ -129,3 +129,57 @@ class Parser:
             self.advance()
             return LiteralNode(value, line)
         return TextNode("", line)
+    
+     def parse_statement(self) -> ASTNode:
+        line = self.current_token.line
+        self.consume(TokenType.STMT_OPEN)
+        if self.current_token.type == TokenType.IF:
+            return self.parse_if_statement(line)
+        elif self.current_token.type == TokenType.FOR:
+            return self.parse_for_statement(line)
+        elif self.current_token.type == TokenType.SET:
+            return self.parse_set_statement(line)
+        elif self.current_token.type in [TokenType.ENDIF, TokenType.ELSE, TokenType.ELIF, TokenType.ENDFOR]:
+            stmt_type = self.current_token.type.name.lower()
+            self.advance()
+            self.consume(TokenType.STMT_CLOSE)
+            return ASTNode(f"End{stmt_type.capitalize()}", line)
+        self.consume(TokenType.STMT_CLOSE)
+        return ASTNode("Statement", line)
+    
+    def parse_if_statement(self, line: int) -> IfNode:
+        self.consume(TokenType.IF)
+        if_node = IfNode(line)
+        condition = self.parse_expression_content()
+        if_node.add_child(condition)
+        self.consume(TokenType.STMT_CLOSE)
+        return if_node
+    
+    def parse_for_statement(self, line: int) -> ForNode:
+        self.consume(TokenType.FOR)
+        for_node = ForNode(line)
+        if self.current_token.type == TokenType.IDENTIFIER:
+            loop_var = VariableNode(self.current_token.value, line)
+            for_node.add_child(loop_var)
+            self.advance()
+        self.consume(TokenType.IN)
+        if self.current_token.type == TokenType.IDENTIFIER:
+            iter_var = VariableNode(self.current_token.value, line)
+            for_node.add_child(iter_var)
+            self.advance()
+        self.consume(TokenType.STMT_CLOSE)
+        return for_node
+    
+    def parse_set_statement(self, line: int) -> SetNode:
+        self.consume(TokenType.SET)
+        set_node = SetNode(line)
+        if self.current_token.type == TokenType.IDENTIFIER:
+            var_name = VariableNode(self.current_token.value, line)
+            set_node.add_child(var_name)
+            self.advance()
+        if self.current_token.type == TokenType.ASSIGN:
+            self.advance()
+            value = self.parse_expression_content()
+            set_node.add_child(value)
+        self.consume(TokenType.STMT_CLOSE)
+        return set_node
