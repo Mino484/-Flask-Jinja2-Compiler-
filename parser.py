@@ -66,3 +66,66 @@ class Parser:
         content = self.current_token.value
         self.advance()
         return TextNode(content, line)
+    
+    def parse_expression(self) -> ExpressionNode:
+        line = self.current_token.line
+        self.consume(TokenType.EXPR_OPEN)
+        expr_node = ExpressionNode(line)
+        expr_content = self.parse_expression_content()
+        expr_node.add_child(expr_content)
+        self.consume(TokenType.EXPR_CLOSE)
+        return expr_node
+    
+    def parse_expression_content(self) -> ASTNode:
+        line = self.current_token.line
+        base_node = self.parse_base_expression()
+        while self.current_token.type == TokenType.PIPE:
+            self.advance()
+            if self.current_token.type == TokenType.IDENTIFIER:
+                filter_name = self.current_token.value
+                self.advance()
+                filter_node = FilterNode(filter_name, line)
+                filter_node.add_child(base_node)
+                if self.current_token.type == TokenType.L_PAREN:
+                    self.advance()
+                    if self.current_token.type != TokenType.R_PAREN:
+                        arg = self.parse_expression_content()
+                        filter_node.add_child(arg)
+                    self.consume(TokenType.R_PAREN)
+                base_node = filter_node
+        if self.current_token.type == TokenType.OPERATOR:
+            op = self.current_token.value
+            self.advance()
+            binary_node = BinaryOpNode(op, line)
+            binary_node.add_child(base_node)
+            right_side = self.parse_expression_content()
+            binary_node.add_child(right_side)
+            return binary_node
+        return base_node
+    
+    def parse_base_expression(self) -> ASTNode:
+        line = self.current_token.line
+        if self.current_token.type == TokenType.IDENTIFIER:
+            var_name = self.current_token.value
+            self.advance()
+            if self.current_token.type == TokenType.DOT:
+                self.advance()
+                if self.current_token.type == TokenType.IDENTIFIER:
+                    attr_name = self.current_token.value
+                    self.advance()
+                    composite_var = VariableNode(f"{var_name}.{attr_name}", line)
+                    return composite_var
+            return VariableNode(var_name, line)
+        elif self.current_token.type == TokenType.NUMBER:
+            value = float(self.current_token.value) if '.' in self.current_token.value else int(self.current_token.value)
+            self.advance()
+            return LiteralNode(value, line)
+        elif self.current_token.type == TokenType.STRING:
+            value = self.current_token.value.strip('"\'')
+            self.advance()
+            return LiteralNode(value, line)
+        elif self.current_token.type == TokenType.BOOL:
+            value = self.current_token.value == 'True'
+            self.advance()
+            return LiteralNode(value, line)
+        return TextNode("", line)
