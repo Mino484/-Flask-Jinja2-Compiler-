@@ -60,3 +60,9 @@ class Parser:
         else:
             self.consume(TokenType.TAG_CLOSE)
         return html_node
+    
+    def parse_text(self) -> TextNode:
+        line = self.current_token.line
+        content = self.current_token.value
+        self.advance()
+        return TextNode(content, line)
