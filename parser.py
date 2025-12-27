@@ -39,3 +39,24 @@ class Parser:
                 node = self.parse_text()
                 root.add_child(node)
         return root    
+    def parse_html(self) -> HTMLNode:
+        line = self.current_token.line
+        self.consume(TokenType.TAG_OPEN)
+        tag_name = self.consume(TokenType.IDENTIFIER).value
+        html_node = HTMLNode(tag_name, line)
+        while (self.current_token.type not in [TokenType.TAG_CLOSE, TokenType.TAG_SELF_CLOSE, TokenType.EOF]):
+            if self.current_token.type == TokenType.IDENTIFIER:
+                attr_name = self.current_token.value
+                self.advance()
+                if self.current_token.type == TokenType.ASSIGN:
+                    self.advance()
+                    if self.current_token.type == TokenType.STRING:
+                        attr_value = self.current_token.value.strip('"\'')
+                        html_node.add_attribute(attr_name, attr_value)
+                        self.advance()
+            self.advance()
+        if self.current_token.type == TokenType.TAG_SELF_CLOSE:
+            self.advance()
+        else:
+            self.consume(TokenType.TAG_CLOSE)
+        return html_node
