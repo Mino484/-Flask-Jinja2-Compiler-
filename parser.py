@@ -22,3 +22,20 @@ class Parser:
         raise SyntaxError(
             f"Expected {expected_type} but got {self.current_token.type} on line {self.current_token.line}"
         )
+        
+    def parse(self) -> ASTNode:
+        root = RootNode(line=1)
+        while self.current_token.type != TokenType.EOF:
+            if self.current_token.type == TokenType.TAG_OPEN:
+                node = self.parse_html()
+                root.add_child(node)
+            elif self.current_token.type == TokenType.STMT_OPEN:
+                node = self.parse_statement()
+                root.add_child(node)
+            elif self.current_token.type == TokenType.EXPR_OPEN:
+                node = self.parse_expression()
+                root.add_child(node)
+            else:
+                node = self.parse_text()
+                root.add_child(node)
+        return root    
