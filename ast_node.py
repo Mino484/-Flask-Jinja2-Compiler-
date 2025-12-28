@@ -82,4 +82,14 @@ class ExpressionNode(ASTNode):
     def __init__(self, line: int):
         super().__init__("Expression", line)
         self.name = "Expression_Node"
-        
+
+class VariableNode(ASTNode):
+    def __init__(self, name: str, line: int):
+        super().__init__("Variable", line)
+        self.var_name = name
+        self.name = f"Variable_{name}_Node"
+    
+    def _get_properties(self):
+        props = super()._get_properties()
+        props['var_name'] = self.var_name
+        return props   
