@@ -78,3 +78,8 @@ class TextNode(ASTNode):
         props['content'] = self.content
         props['length'] = len(self.content)
         return props
+class ExpressionNode(ASTNode):
+    def __init__(self, line: int):
+        super().__init__("Expression", line)
+        self.name = "Expression_Node"
+        
