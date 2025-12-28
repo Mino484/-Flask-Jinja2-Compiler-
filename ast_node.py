@@ -93,3 +93,16 @@ class VariableNode(ASTNode):
         props = super()._get_properties()
         props['var_name'] = self.var_name
         return props   
+
+class LiteralNode(ASTNode):
+    def __init__(self, value: Any, line: int):
+        super().__init__("Literal", line)
+        self.value = value
+        self.value_type = type(value).__name__
+        self.name = f"Literal_{self.value_type}_Node"
+    
+    def _get_properties(self):
+        props = super()._get_properties()
+        props['value'] = self.value
+        props['value_type'] = self.value_type
+        return props
