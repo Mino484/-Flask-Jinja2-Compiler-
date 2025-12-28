@@ -144,3 +144,8 @@ class SetNode(ASTNode):
         super().__init__("Set", line)
         self.name = "Set_Node"
 
+class RootNode(ASTNode):
+    def __init__(self, line: int):
+        super().__init__("Root", line)
+        self.name = "Root_Node"
+
