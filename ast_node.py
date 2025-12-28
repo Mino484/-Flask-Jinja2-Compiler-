@@ -63,3 +63,18 @@ class HTMLNode(ASTNode):
         props['attributes'] = self.attributes
         props['tag'] = self.tag
         return props
+class TextNode(ASTNode):
+    def __init__(self, content: str, line: int):
+        super().__init__("Text", line)
+        self.content = content
+        self.name = f"Text_Node"
+    
+    def _get_properties(self):
+        props = super()._get_properties()
+        if len(self.content) > 50:
+            props['content_preview'] = self.content[:50] + "..."
+        else:
+            props['content_preview'] = self.content
+        props['content'] = self.content
+        props['length'] = len(self.content)
+        return props
