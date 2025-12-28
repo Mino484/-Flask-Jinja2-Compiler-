@@ -128,4 +128,19 @@ class FilterNode(ASTNode):
         props = super()._get_properties()
         props['filter_name'] = self.filter_name
         return props
+    
+class IfNode(ASTNode):
+    def __init__(self, line: int):
+        super().__init__("If", line)
+        self.name = "If_Node"
+
+class ForNode(ASTNode):
+    def __init__(self, line: int):
+        super().__init__("For", line)
+        self.name = "For_Node"
+
+class SetNode(ASTNode):
+    def __init__(self, line: int):
+        super().__init__("Set", line)
+        self.name = "Set_Node"
 
