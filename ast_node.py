@@ -106,6 +106,17 @@ class LiteralNode(ASTNode):
         props['value'] = self.value
         props['value_type'] = self.value_type
         return props
+class BinaryOpNode(ASTNode):
+    def __init__(self, op: str, line: int):
+        super().__init__("BinaryOp", line)
+        self.operator = op
+        self.name = f"BinaryOp_{op}_Node"
+    
+    def _get_properties(self):
+        props = super()._get_properties()
+        props['operator'] = self.operator
+        return props
+
 class FilterNode(ASTNode):
     def __init__(self, filter_name: str, line: int):
         super().__init__("Filter", line)
