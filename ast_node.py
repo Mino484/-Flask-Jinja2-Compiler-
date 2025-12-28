@@ -106,3 +106,15 @@ class LiteralNode(ASTNode):
         props['value'] = self.value
         props['value_type'] = self.value_type
         return props
+class FilterNode(ASTNode):
+    def __init__(self, filter_name: str, line: int):
+        super().__init__("Filter", line)
+        self.filter_name = filter_name
+        self.name = f"Filter_{filter_name}_Node"
+        self.arguments = []
+    
+    def _get_properties(self):
+        props = super()._get_properties()
+        props['filter_name'] = self.filter_name
+        return props
+
