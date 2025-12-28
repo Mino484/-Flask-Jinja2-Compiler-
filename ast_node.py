@@ -46,3 +46,20 @@ class ASTNode:
     
     def __str__(self):
         return f"{self.name} (Line: {self.line})"
+    
+class HTMLNode(ASTNode):
+        
+    def __init__(self, tag: str, line: int):
+        super().__init__("HTML", line)
+        self.tag = tag
+        self.attributes = {}
+        self.name = f"HTML_{tag}_Node"
+    
+    def add_attribute(self, name: str, value: str):
+        self.attributes[name] = value
+    
+    def _get_properties(self):
+        props = super()._get_properties()
+        props['attributes'] = self.attributes
+        props['tag'] = self.tag
+        return props
