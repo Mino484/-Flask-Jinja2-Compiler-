@@ -1,0 +1,66 @@
+
+class SymbolTable:
+    """Symbol table"""
+    
+    def __init__(self):
+        self.symbols = {}
+        self.scopes = [{}]
+        self.current_scope = 0
+    
+    def enter_scope(self):
+        self.scopes.append({})
+        self.current_scope += 1
+    
+    def exit_scope(self):
+        if self.current_scope > 0:
+            self.scopes.pop()
+            self.current_scope -= 1
+    
+    def add_symbol(self, name: str, symbol_type: str, value=None, line=None):
+        symbol = {
+            'name': name,
+            'type': symbol_type,
+            'value': value,
+            'line': line,
+            'scope': self.current_scope
+        }
+        
+        if name in self.scopes[self.current_scope]:
+            print(f"Warning: '{name}' already defined")
+        
+        self.scopes[self.current_scope][name] = symbol
+        self.symbols[name] = symbol
+        return symbol
+    
+    def get_symbol(self, name: str):
+        for i in range(self.current_scope, -1, -1):
+            if name in self.scopes[i]:
+                return self.scopes[i][name]
+        return None
+    
+    def update_symbol(self, name: str, value):
+        symbol = self.get_symbol(name)
+        if symbol:
+            for i in range(self.current_scope, -1, -1):
+                if name in self.scopes[i]:
+                    self.scopes[i][name]['value'] = value
+                    self.symbols[name]['value'] = value
+                    return True
+        return False
+    
+    def to_dict(self):
+        """Convert symbol table to dictionary"""
+        result = {
+            'scopes': [],
+            'all_symbols': list(self.symbols.values())
+        }
+        
+        for scope_idx, scope in enumerate(self.scopes):
+            scope_data = {
+                'id': scope_idx,
+                'symbols': list(scope.values())
+            }
+            result['scopes'].append(scope_data)
+        
+        return result
+
