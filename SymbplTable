@@ -1,7 +1,5 @@
 
 class SymbolTable:
-    """Symbol table"""
-    
     def __init__(self):
         self.symbols = {}
         self.scopes = [{}]
