@@ -130,7 +130,7 @@ class Parser:
             return LiteralNode(value, line)
         return TextNode("", line)
     
-     def parse_statement(self) -> ASTNode:
+    def parse_statement(self) -> ASTNode:
         line = self.current_token.line
         self.consume(TokenType.STMT_OPEN)
         if self.current_token.type == TokenType.IF:
